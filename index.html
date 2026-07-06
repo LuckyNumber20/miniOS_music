@@ -1,1 +1,187 @@
-<h1>MiniOS Music</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniOS Music Player</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1db954; /* Spotify Green */
+            margin-top: 0;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        h2 { margin: 0; font-size: 20px; }
+
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .song-item:hover {
+            background-color: #333;
+        }
+
+        .song-info {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+
+        .btn-play {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-play:hover { 
+            background-color: #1ed760; 
+            transform: scale(1.05); 
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .instructions {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎵 MiniOS Web Player</h1>
+    
+    <h3 style="color: #aaa; margin-bottom: 5px;">Now Playing</h3>
+    <audio id="globalPlayer" controls></audio>
+    <p id="currentTrackLabel" style="font-size: 14px; color: #1db954; margin-top: 5px; min-height: 20px;"></p>
+
+    <div class="header-row">
+        <h2>Live Server Tracklist</h2>
+        <button class="btn-play" onclick="loadPlaylist()" style="background-color: #444;">🔄 Refresh</button>
+    </div>
+
+    <div class="song-list" id="playlistContainer">
+        <p style="color: #888; font-style: italic;">Connecting to server...</p>
+    </div>
+    
+    <p class="instructions">To add new music, upload MP3s and update playlist.json directly in your GitHub repository.</p>
+</div>
+
+<script>
+    // This is the absolute path to your GitHub Pages site
+    const baseURL = "https://luckynumber20.github.io/miniOS_music/";
+    
+    const playlistContainer = document.getElementById('playlistContainer');
+    const globalPlayer = document.getElementById('globalPlayer');
+    const currentTrackLabel = document.getElementById('currentTrackLabel');
+
+    // This function reaches out to the internet to read your JSON file
+    async function loadPlaylist() {
+        try {
+            playlistContainer.innerHTML = '<p style="color: #888;">Fetching tracks...</p>';
+            
+            // We add a random number to the end of the URL to prevent the browser from loading an old, cached version
+            const response = await fetch(baseURL + 'playlist.json?cache=' + Date.now());
+            
+            if (!response.ok) {
+                throw new Error("Could not read playlist.json");
+            }
+            
+            const playlistData = await response.json();
+            renderPlaylist(playlistData);
+            
+        } catch (error) {
+            playlistContainer.innerHTML = '<p style="color: #ff5c5c;">Error: Could not find playlist.json. Check your GitHub repository!</p>';
+            console.error("Fetch error: ", error);
+        }
+    }
+
+    // This loops through your JSON array and builds the HTML buttons
+    function renderPlaylist(playlist) {
+        playlistContainer.innerHTML = '';
+
+        if (playlist.length === 0) {
+            playlistContainer.innerHTML = '<p style="color: #666; font-style: italic;">No tracks indexed in JSON.</p>';
+            return;
+        }
+
+        playlist.forEach(track => {
+            const item = document.createElement('div');
+            item.className = 'song-item';
+
+            // We combine the base URL with the filename to get the exact MP3 link
+            const fullAudioUrl = baseURL + track.file;
+
+            item.innerHTML = `
+                <div class="song-info">${track.title}</div>
+                <button class="btn-play" onclick="playTrack('${fullAudioUrl}', '${track.title}')">Play</button>
+            `;
+            playlistContainer.appendChild(item);
+        });
+    }
+
+    // Play action
+    function playTrack(url, title) {
+        globalPlayer.src = url;
+        globalPlayer.play();
+        currentTrackLabel.innerText = "Playing: " + title;
+    }
+
+    // Automatically load the playlist when the page opens
+    window.onload = loadPlaylist;
+
+</script>
+
+</body>
+</html>
