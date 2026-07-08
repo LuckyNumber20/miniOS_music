@@ -112,18 +112,29 @@
         <div id="now-playing">Status: Idle</div>
     </div>
 
-    <script>
+<script>
         const jsonUrl = "playlist.json";
         const audioPlayer = document.getElementById('audio-player');
         const nowPlaying = document.getElementById('now-playing');
         
         let playlistData = null;
 
+        // Upgraded fetch block with safety catch chains
         fetch(jsonUrl)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 playlistData = data;
                 renderMenu();
+            })
+            .catch(err => {
+                console.error("Failed to load playlist structure:", err);
+                nowPlaying.style.color = "red";
+                nowPlaying.innerText = "Error: " + err.message + " (Check playlist.json formatting!)";
             });
 
         function renderMenu() {
@@ -131,17 +142,20 @@
             const folderList = document.getElementById('folder-list');
             
             publicList.innerHTML = "";
-            playlistData.public_tracks.forEach(track => {
-                const li = document.createElement('li');
-                li.className = "track-item";
-                li.innerHTML = `<span>▶ ${track.title}</span>`;
-                // Pass image property to play function
-                li.onclick = () => playSong(track.file, track.title, track.image);
-                publicList.appendChild(li);
-            });
+            
+            // Check if object key exists before looping
+            if (playlistData && playlistData.public_tracks) {
+                playlistData.public_tracks.forEach(track => {
+                    const li = document.createElement('li');
+                    li.className = "track-item";
+                    li.innerHTML = `<span>▶ ${track.title}</span>`;
+                    li.onclick = () => playSong(track.file, track.title, track.image);
+                    publicList.appendChild(li);
+                });
+            }
 
             folderList.innerHTML = "";
-            if (playlistData.secret_vault) {
+            if (playlistData && playlistData.secret_vault) {
                 const vault = playlistData.secret_vault;
                 const div = document.createElement('div');
                 div.className = "folder-item";
@@ -166,14 +180,15 @@
             const vaultList = document.getElementById('vault-list');
             vaultList.innerHTML = "";
             
-            vault.tracks.forEach(track => {
-                const li = document.createElement('li');
-                li.className = "track-item";
-                li.innerHTML = `<span>🔒 ${track.title}</span>`;
-                // Pass image property here as well
-                li.onclick = () => playSong(track.file, track.title, track.image);
-                vaultList.appendChild(li);
-            });
+            if (vault.tracks) {
+                vault.tracks.forEach(track => {
+                    const li = document.createElement('li');
+                    li.className = "track-item";
+                    li.innerHTML = `<span>🔒 ${track.title}</span>`;
+                    li.onclick = () => playSong(track.file, track.title, track.image);
+                    vaultList.appendChild(li);
+                });
+            }
         }
 
         function goBack() {
@@ -184,13 +199,13 @@
         function playSong(filePath, title, imgPath) {
             audioPlayer.src = filePath;
             audioPlayer.play();
+            nowPlaying.style.color = "#fff";
             nowPlaying.innerText = `Playing: ${title}`;
             
-            // Check if track has a custom image defined, change background accordingly
             if (imgPath) {
                 document.body.style.backgroundImage = `url('${imgPath}')`;
             } else {
-                document.body.style.backgroundImage = "none"; // Reset to fallback color if empty
+                document.body.style.backgroundImage = "none";
             }
         }
     </script>
