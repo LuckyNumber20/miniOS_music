@@ -1,18 +1,107 @@
-[
-  {
-    "title": "Megalovania",
-    "file": "Undertale - Megalovania.mp3"
-  },
-  {
-    "title": "xStep",
-    "file": "DJVI - xStep.mp3"
-  },
-  {
-    "title": "Deadlocked",
-    "file": "F-777 - Deadlocked.mp3"
-  },
-  {
-    "title": "Theory_of_Everything",
-    "file": "dj-Nate - Theory of Everything (Official Video) (Geometry Dash).mp3"
+{
+  "public_tracks": [
+    {
+      "title": "Megalovania",
+      "file": "Megalovania.mp3"
+    },
+    {
+      "title": "xStep",
+      "file": "DJVI - xStep.mp3"
+    },
+    {
+      "title": "Deadlocked",
+      "file": "F-777 - Deadlocked.mp3"
+    },
+    {
+      "title": "Theory_of_Everything",
+      "file": "dj-Nate - Theory of Everything (Official Video) (Geometry Dash).mp3"
+    }
+  ],
+  "secret_vault": {
+    "folder_name": "ROR2 songs",
+    "is_locked": true,
+    "passcode": "2032",
+    "tracks": [
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      },
+      {
+        "title": "Restricted Track A",
+        "file": "vault/secret1.mp3"
+      },
+      {
+        "title": "Restricted Track B",
+        "file": "vault/secret2.mp3"
+      }
+    ]
   }
-]
+}
