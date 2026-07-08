@@ -3,18 +3,22 @@
     {
       "title": "Megalovania",
       "file": "Megalovania.mp3"
+      "image": "image.jpg"
     },
     {
       "title": "xStep",
       "file": "DJVI - xStep.mp3"
+      "image": "image.jpg"
     },
     {
       "title": "Deadlocked",
       "file": "F-777 - Deadlocked.mp3"
+      "image": "image.jpg"
     },
     {
       "title": "Theory_of_Everything",
       "file": "dj-Nate - Theory of Everything (Official Video) (Geometry Dash).mp3"
+      "image": "image.jpg"
     }
   ],
   "secret_vault": {
@@ -25,6 +29,7 @@
       {
         "title": "Forgot_the_Cry_of_Gulls",
         "file": "Chris Christodoulou -  Forgot the Cry of Gulls  Risk of Rain 2_ Seekers of the Storm OST (2024).mp3"
+        "image": "image.jpg"
       },
       {
         "title": "Oṃ_Maṇi_Padme_Hūṃ_III",
