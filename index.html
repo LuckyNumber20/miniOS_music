@@ -3,16 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniOS Cloud Player</title>
+    <title>MiniOS Background Player</title>
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
             background-color: #121212;
+            
+            /* Fullscreen background scaling configurations */
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            
             color: #00ff00;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+            /* Smoothly fades the background when changing songs */
+            transition: background-image 0.5s ease-in-out; 
         }
         h1 {
             border-bottom: 2px solid #00ff00;
@@ -20,24 +31,27 @@
             width: 100%;
             max-width: 500px;
             text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .container {
             width: 100%;
             max-width: 500px;
-            background: #1e1e1e;
+            /* Semi-transparent panel so you can see the background art behind it */
+            background: rgba(30, 30, 30, 0.85); 
             border: 1px solid #333;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px); /* Slight blur effect over the art */
         }
-        .track-list, .folder-content {
+        .track-list {
             list-style: none;
             padding: 0;
         }
         .track-item, .folder-item {
             padding: 12px;
             margin: 8px 0;
-            background: #252525;
+            background: rgba(0, 0, 0, 0.4);
             border-left: 4px solid #00ff00;
             cursor: pointer;
             transition: 0.2s;
@@ -45,7 +59,7 @@
             justify-content: space-between;
         }
         .track-item:hover, .folder-item:hover {
-            background: #333;
+            background: rgba(0, 0, 0, 0.6);
         }
         .folder-item {
             border-left: 4px solid #ffcc00;
@@ -69,26 +83,27 @@
         #now-playing {
             margin-top: 15px;
             font-size: 0.9em;
-            color: #888;
+            color: #fff;
             text-align: center;
+            text-shadow: 1px 1px 2px #000;
         }
     </style>
 </head>
 <body>
 
-    <h1>MiniOS Music</h1>
+    <h1>MiniOS Music Console</h1>
     
     <div class="container">
         <div id="main-view">
-            <h3>🎵 Tracks</h3>
+            <h3>🎵 Public Tracks</h3>
             <ul id="public-list" class="track-list"></ul>
             
-            <h3>📁 Folders</h3>
+            <h3>📁 Directories</h3>
             <div id="folder-list"></div>
         </div>
 
         <div id="folder-view" class="hidden">
-            <button class="back-btn" onclick="goBack()">⬅ Back to Main</button>
+            <button class="back-btn" onclick="goBack()">⬅ Back</button>
             <h3 id="current-folder-title">📁 Folder</h3>
             <ul id="vault-list" class="track-list"></ul>
         </div>
@@ -104,39 +119,33 @@
         
         let playlistData = null;
 
-        // Fetch directory structure mapping configurations
         fetch(jsonUrl)
             .then(response => response.json())
             .then(data => {
                 playlistData = data;
                 renderMenu();
-            })
-            .catch(err => {
-                console.error("Error loading index file:", err);
-                nowPlaying.innerText = "Error loading playlist tree config.";
             });
 
         function renderMenu() {
             const publicList = document.getElementById('public-list');
             const folderList = document.getElementById('folder-list');
             
-            // 1. Render normal open public tracks
             publicList.innerHTML = "";
             playlistData.public_tracks.forEach(track => {
                 const li = document.createElement('li');
                 li.className = "track-item";
                 li.innerHTML = `<span>▶ ${track.title}</span>`;
-                li.onclick = () => playSong(track.file, track.title);
+                // Pass image property to play function
+                li.onclick = () => playSong(track.file, track.title, track.image);
                 publicList.appendChild(li);
             });
 
-            // 2. Render structural directory locks
             folderList.innerHTML = "";
             if (playlistData.secret_vault) {
                 const vault = playlistData.secret_vault;
                 const div = document.createElement('div');
                 div.className = "folder-item";
-                div.innerHTML = `<span>📁 ${vault.folder_name} ${vault.is_locked ? '[LOCKED]' : ''}</span>`;
+                div.innerHTML = `<span>📁 ${vault.folder_name}</span>`;
                 div.onclick = () => accessFolder(vault);
                 folderList.appendChild(div);
             }
@@ -144,18 +153,15 @@
 
         function accessFolder(vault) {
             if (vault.is_locked) {
-                // Challenge loop execution verification check block
-                const attempt = prompt("Enter security passcode to unlock this folder:");
+                const attempt = prompt("Enter passcode:");
                 if (attempt !== vault.passcode) {
-                    alert("❌ Access Denied! Incorrect passcode.");
+                    alert("❌ Denied!");
                     return;
                 }
             }
             
-            // Open the directory view pipeline state variables
             document.getElementById('main-view').classList.add('hidden');
             document.getElementById('folder-view').classList.remove('hidden');
-            document.getElementById('current-folder-title').innerText = `📁 ${vault.folder_name}`;
 
             const vaultList = document.getElementById('vault-list');
             vaultList.innerHTML = "";
@@ -164,7 +170,8 @@
                 const li = document.createElement('li');
                 li.className = "track-item";
                 li.innerHTML = `<span>🔒 ${track.title}</span>`;
-                li.onclick = () => playSong(track.file, track.title);
+                // Pass image property here as well
+                li.onclick = () => playSong(track.file, track.title, track.image);
                 vaultList.appendChild(li);
             });
         }
@@ -174,10 +181,17 @@
             document.getElementById('main-view').classList.remove('hidden');
         }
 
-        function playSong(filePath, title) {
+        function playSong(filePath, title, imgPath) {
             audioPlayer.src = filePath;
             audioPlayer.play();
             nowPlaying.innerText = `Playing: ${title}`;
+            
+            // Check if track has a custom image defined, change background accordingly
+            if (imgPath) {
+                document.body.style.backgroundImage = `url('${imgPath}')`;
+            } else {
+                document.body.style.backgroundImage = "none"; // Reset to fallback color if empty
+            }
         }
     </script>
 </body>
