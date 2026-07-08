@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniOS Background Player</title>
+    <title>MiniOS Minimalist Player</title>
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
             background-color: #121212;
             
-            /* Fullscreen background scaling configurations */
+            /* Fullscreen scaling setup */
             background-position: center;
-            background-size: cover;
+            background-size: contain; 
             background-repeat: no-repeat;
             background-attachment: fixed;
             
@@ -22,28 +22,32 @@
             padding: 20px;
             min-height: 100vh;
             margin: 0;
-            /* Smoothly fades the background when changing songs */
+            box-sizing: border-box;
             transition: background-image 0.5s ease-in-out; 
         }
-        h1 {
-            border-bottom: 2px solid #00ff00;
-            padding-bottom: 10px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+
+        /* Ambient Header Hide class */
+        h1.hidden {
+            display: none;
         }
+
         .container {
             width: 100%;
             max-width: 500px;
-            /* Semi-transparent panel so you can see the background art behind it */
             background: rgba(30, 30, 30, 0.85); 
             border: 1px solid #333;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px); /* Slight blur effect over the art */
+            backdrop-filter: blur(4px);
+            margin-top: 20px;
         }
+
+        /* Standard view utility toggles */
+        .hidden {
+            display: none !important;
+        }
+
         .track-list {
             list-style: none;
             padding: 0;
@@ -65,9 +69,6 @@
             border-left: 4px solid #ffcc00;
             color: #ffcc00;
         }
-        .hidden {
-            display: none;
-        }
         .back-btn {
             background: #333;
             color: #ffcc00;
@@ -76,24 +77,60 @@
             cursor: pointer;
             margin-bottom: 10px;
         }
-        audio {
-            width: 100%;
-            margin-top: 20px;
+
+        /* --- 📌 FIXED CORNER MINI-PLAYER PANEL --- */
+        #mini-dock {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #00ff00;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
         }
-        #now-playing {
-            margin-top: 15px;
-            font-size: 0.9em;
+
+        #mini-dock h4 {
+            margin: 0;
+            font-size: 0.95em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             color: #fff;
+        }
+
+        #mini-dock audio {
+            width: 100%;
+        }
+
+        .exit-btn {
+            background: #cc0000;
+            color: white;
+            border: none;
+            padding: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: inherit;
             text-align: center;
-            text-shadow: 1px 1px 2px #000;
+            transition: background 0.2s;
+        }
+
+        .exit-btn:hover {
+            background: #ff3333;
         }
     </style>
 </head>
 <body>
 
-    <h1>MiniOS Music Console</h1>
+    <h1 id="main-header">MiniOS Music Console</h1>
     
-    <div class="container">
+    <div class="container" id="menu-container">
         <div id="main-view">
             <h3>🎵 Public Tracks</h3>
             <ul id="public-list" class="track-list"></ul>
@@ -107,34 +144,30 @@
             <h3 id="current-folder-title">📁 Folder</h3>
             <ul id="vault-list" class="track-list"></ul>
         </div>
-
-        <audio id="audio-player" controls></audio>
-        <div id="now-playing">Status: Idle</div>
     </div>
 
-<script>
+    /* --- Floating Ambient Dock Dashboard Component --- */
+    <div id="mini-dock" class="hidden">
+        <h4 id="dock-title">Playing: Track Name</h4>
+        <audio id="audio-player" controls></audio>
+        <button class="exit-btn" onclick="exitAmbientMode()">❌ Exit Artwork Mode</button>
+    </div>
+
+    <script>
         const jsonUrl = "playlist.json";
         const audioPlayer = document.getElementById('audio-player');
-        const nowPlaying = document.getElementById('now-playing');
+        const dockTitle = document.getElementById('dock-title');
+        const menuContainer = document.getElementById('menu-container');
+        const mainHeader = document.getElementById('main-header');
+        const miniDock = document.getElementById('mini-dock');
         
         let playlistData = null;
 
-        // Upgraded fetch block with safety catch chains
         fetch(jsonUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 playlistData = data;
                 renderMenu();
-            })
-            .catch(err => {
-                console.error("Failed to load playlist structure:", err);
-                nowPlaying.style.color = "red";
-                nowPlaying.innerText = "Error: " + err.message + " (Check playlist.json formatting!)";
             });
 
         function renderMenu() {
@@ -142,8 +175,6 @@
             const folderList = document.getElementById('folder-list');
             
             publicList.innerHTML = "";
-            
-            // Check if object key exists before looping
             if (playlistData && playlistData.public_tracks) {
                 playlistData.public_tracks.forEach(track => {
                     const li = document.createElement('li');
@@ -196,17 +227,42 @@
             document.getElementById('main-view').classList.remove('hidden');
         }
 
+        // --- AMBIENT VIEW MODE PIPELINE TRIGGERS ---
         function playSong(filePath, title, imgPath) {
             audioPlayer.src = filePath;
             audioPlayer.play();
-            nowPlaying.style.color = "#fff";
-            nowPlaying.innerText = `Playing: ${title}`;
             
+            // Set Dock Metadata Text
+            dockTitle.innerText = `🎵 ${title}`;
+            
+            // Apply Background Image Canvas
             if (imgPath) {
                 document.body.style.backgroundImage = `url('${imgPath}')`;
             } else {
                 document.body.style.backgroundImage = "none";
             }
+
+            // Hide Main Interfaces
+            menuContainer.classList.add('hidden');
+            mainHeader.classList.add('hidden');
+
+            // Show Floating Dock
+            miniDock.classList.remove('hidden');
+        }
+
+        function exitAmbientMode() {
+            // Pause Audio playback engine state 
+            audioPlayer.pause();
+
+            // Clear active background graphic
+            document.body.style.backgroundImage = "none";
+
+            // Restore Main Layout Blocks
+            menuContainer.classList.remove('hidden');
+            mainHeader.classList.remove('hidden');
+
+            // Hide Floating Dock
+            miniDock.classList.add('hidden');
         }
     </script>
 </body>
